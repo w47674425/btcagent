@@ -53,47 +53,49 @@ std::string GLogToStdout::ToString(google::LogSeverity severity, const char* fil
 }
 #endif
 
-string Strings::Format(const char * fmt, ...) {
-  char tmp[512];
-  string dest;
-  va_list al;
-  va_start(al, fmt);
-  int len = vsnprintf(tmp, 512, fmt, al);
-  va_end(al);
-  if (len>511) {
-    char * destbuff = new char[len+1];
+string Strings::Format(const char* fmt, ...) {
+    char tmp[512];
+    string dest;
+    va_list al;
     va_start(al, fmt);
-    len = vsnprintf(destbuff, len+1, fmt, al);
+    int len = vsnprintf(tmp, 512, fmt, al);
     va_end(al);
-    dest.append(destbuff, len);
-    delete[] destbuff;
-  } else {
-    dest.append(tmp, len);
-  }
-  return dest;
+    if (len > 511) {
+        char* destbuff = new char[len + 1];
+        va_start(al, fmt);
+        len = vsnprintf(destbuff, len + 1, fmt, al);
+        va_end(al);
+        dest.append(destbuff, len);
+        delete[] destbuff;
+    }
+    else {
+        dest.append(tmp, len);
+    }
+    return dest;
 }
 
-void Strings::Append(string & dest, const char * fmt, ...) {
-  char tmp[512];
-  va_list al;
-  va_start(al, fmt);
-  int len = vsnprintf(tmp, 512, fmt, al);
-  va_end(al);
-  if (len>511) {
-    char * destbuff = new char[len+1];
+void Strings::Append(string& dest, const char* fmt, ...) {
+    char tmp[512];
+    va_list al;
     va_start(al, fmt);
-    len = vsnprintf(destbuff, len+1, fmt, al);
+    int len = vsnprintf(tmp, 512, fmt, al);
     va_end(al);
-    dest.append(destbuff, len);
-    delete[] destbuff;
-  } else {
-    dest.append(tmp, len);
-  }
+    if (len > 511) {
+        char* destbuff = new char[len + 1];
+        va_start(al, fmt);
+        len = vsnprintf(destbuff, len + 1, fmt, al);
+        va_end(al);
+        dest.append(destbuff, len);
+        delete[] destbuff;
+    }
+    else {
+        dest.append(tmp, len);
+    }
 }
 
 string Strings::ReplaceAll(std::string str, const std::string& from, const std::string& to) {
     size_t start_pos = 0;
-    while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+    while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
         str.replace(start_pos, from.length(), to);
         start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
     }
@@ -101,198 +103,244 @@ string Strings::ReplaceAll(std::string str, const std::string& from, const std::
 }
 
 string Strings::FormatIP(uint32_t ipv4Int, string format) {
-  union IPv4Arr {
-    uint32_t ipv4Int;
-    uint8_t parts[4];
-  } ipv4Arr;
+    union IPv4Arr {
+        uint32_t ipv4Int;
+        uint8_t parts[4];
+    } ipv4Arr;
 
-  ipv4Arr.ipv4Int = std::move(ipv4Int);
+    ipv4Arr.ipv4Int = std::move(ipv4Int);
 
-  format = Strings::ReplaceAll(format, string("{1}"), std::to_string(ipv4Arr.parts[0]));
-  format = Strings::ReplaceAll(format, string("{2}"), std::to_string(ipv4Arr.parts[1]));
-  format = Strings::ReplaceAll(format, string("{3}"), std::to_string(ipv4Arr.parts[2]));
-  format = Strings::ReplaceAll(format, string("{4}"), std::to_string(ipv4Arr.parts[3]));
+    format = Strings::ReplaceAll(format, string("{1}"), std::to_string(ipv4Arr.parts[0]));
+    format = Strings::ReplaceAll(format, string("{2}"), std::to_string(ipv4Arr.parts[1]));
+    format = Strings::ReplaceAll(format, string("{3}"), std::to_string(ipv4Arr.parts[2]));
+    format = Strings::ReplaceAll(format, string("{4}"), std::to_string(ipv4Arr.parts[3]));
 
-  return format;
+    return format;
 }
 
-string getJsonStr(const char *c,const jsmntok_t *t) {
-  if (t == NULL || t->end <= t->start)
-    return "";
+string getJsonStr(const char* c, const jsmntok_t* t) {
+    if (t == NULL || t->end <= t->start)
+        return "";
 
-  return string(c + t->start, t->end - t->start);
+    return string(c + t->start, t->end - t->start);
 }
 
 static
-int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
-  if (tok->type == JSMN_STRING && (int) strlen(s) == tok->end - tok->start &&
-      strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
-    return 0;
-  }
-  return -1;
+int jsoneq(const char* json, jsmntok_t* tok, const char* s) {
+    if (tok->type == JSMN_STRING && (int)strlen(s) == tok->end - tok->start &&
+        strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
+        return 0;
+    }
+    return -1;
 }
 
-bool parseConfJson(const string &jsonStr, AgentConf &conf) {
-  jsmn_parser p;
-  jsmn_init(&p);
-  jsmntok_t t[64]; // we expect no more than 64 tokens
-  int r;
-  const char *c = jsonStr.c_str();
+bool parseConfJson(const string& jsonStr, AgentConf& conf) {
+    jsmn_parser p;
+    jsmn_init(&p);
+    jsmntok_t t[64]; // we expect no more than 64 tokens
+    int r;
+    const char* c = jsonStr.c_str();
 
-  // pase json string
-  r = jsmn_parse(&p, jsonStr.c_str(), jsonStr.length(), t, sizeof(t)/sizeof(t[0]));
+    // pase json string
+    r = jsmn_parse(&p, jsonStr.c_str(), jsonStr.length(), t, sizeof(t) / sizeof(t[0]));
 
-  // assume the top-level element is an object
-  if (r < 1 || t[0].type != JSMN_OBJECT) {
-    LOG(ERROR) << "json decode failure" << std::endl;
-    return false;
-  }
-
-  for (int i = 1; i < r; i++) {
-    if (jsoneq(c, &t[i], "agent_type") == 0) {
-      conf.agentType_ = getJsonStr(c, &t[i+1]);
-      i++;
+    // assume the top-level element is an object
+    if (r < 1 || t[0].type != JSMN_OBJECT) {
+        LOG(ERROR) << "json decode failure" << std::endl;
+        return false;
     }
-    if (jsoneq(c, &t[i], "agent_listen_ip") == 0) {
-      conf.listenIP_ = getJsonStr(c, &t[i+1]);
-      i++;
-    }
-    else if (jsoneq(c, &t[i], "agent_listen_port") == 0) {
-      conf.listenPort_ = (uint16_t)strtoul(getJsonStr(c, &t[i+1]).c_str(), NULL, 10);
-      i++;
-    }
-    else if (jsoneq(c, &t[i], "pools") == 0) {
-      //
-      // "pools": [
-      //    ["cn.ss.btc.com", 1800, "kevin1"],
-      //    ["cn.ss.btc.com", 1800, "kevin2"],
-      // ]
-      //
-      i++;
-      if (t[i].type != JSMN_ARRAY) {
-        return false;  // we expect "pools" to be an array of array
-      }
-      const int poolCount = t[i].size;
 
-      for (int j = 0; j < poolCount; j++) {
-        // we expect pools to be an array: 3 elements
-        int idx = i + 1 + j*4;
-        if (t[idx].type != JSMN_ARRAY || t[idx].size != 3) {
-          return false;
+    for (int i = 1; i < r; i++) {
+        if (jsoneq(c, &t[i], "agent_type") == 0) {
+            conf.agentType_ = getJsonStr(c, &t[i + 1]);
+            i++;
         }
+        if (jsoneq(c, &t[i], "agent_listen_ip") == 0) {
+            conf.listenIP_ = getJsonStr(c, &t[i + 1]);
+            i++;
+        }
+        else if (jsoneq(c, &t[i], "agent_listen_port") == 0) {
+            conf.listenPort_ = (uint16_t)strtoul(getJsonStr(c, &t[i + 1]).c_str(), NULL, 10);
+            i++;
+        }
+        else if (jsoneq(c, &t[i], "pools") == 0) {
+            //
+            // "pools": [
+            //    ["cn.ss.btc.com", 1800, "kevin1"],
+            //    ["cn.ss.btc.com", 1800, "kevin2"],
+            // ]
+            //
+			// "pools": [
+			// {
+			// 	 "duration": 2000,
+			// 	 	"pool" : [
+			// 	 		[ "us.ss.btc.com", 1800, "YourSubAccountName" ],
+			// 	 			["us.ss.btc.com", 443, "YourSubAccountName"],
+			// 	 			["us.ss.btc.com", 3333, "YourSubAccountName"]
+			// 	 	]
+			// },
+			//  {
+			//	"duration": 3000,
+			//	"pool" : [
+			//	  [ "us.ss.btc.com", 1801, "YourSubAccountName" ],
+			//	  ["us.ss.btc.com", 444, "YourSubAccountName"],
+			//	  ["us.ss.btc.com", 3334, "YourSubAccountName"]
+			//	]
+			//  }
+			//]
+            i++;
 
-        PoolConf pool;
-        pool.host_ = getJsonStr(c, &t[idx + 1]);
-        pool.port_ = (uint16_t)strtoul(getJsonStr(c, &t[idx + 2]).c_str(), NULL, 10);
-        pool.upPoolUserName_ = getJsonStr(c, &t[idx + 3]);
+            if (t[i].type != JSMN_ARRAY) {
+                return false;  // we expect "pools" to be an array of array
+            }
+            const int poolCount = t[i].size;
 
-        conf.pools_.push_back(pool);
-      }
-      i += poolCount * 4;
-    }
-    else if (jsoneq(c, &t[i], "always_keep_downconn") == 0) {
-      string opt = getJsonStr(c, &t[i+1]);
-      std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
-      conf.alwaysKeepDownconn_ = (opt == "true");
-      i++;
-    }
-    else if (jsoneq(c, &t[i], "disconnect_when_lost_asicboost") == 0) {
-      string opt = getJsonStr(c, &t[i + 1]);
-      std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
-      conf.disconnectWhenLostAsicBoost_ = (opt == "true");
-      i++;
-    }
-    else if (jsoneq(c, &t[i], "use_ip_as_worker_name") == 0) {
-      string opt = getJsonStr(c, &t[i + 1]);
-      std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
-      conf.useIpAsWorkerName_ = (opt == "true");
-      i++;
-    }
-    else if (jsoneq(c, &t[i], "ip_worker_name_format") == 0) {
-      conf.ipWorkerNameFormat_ = getJsonStr(c, &t[i+1]);
-      i++;
-    }
-    else if (jsoneq(c, &t[i], "submit_response_from_server") == 0) {
-      string opt = getJsonStr(c, &t[i + 1]);
-      std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
-      conf.submitResponseFromServer_ = (opt == "true");
-      i++;
-    }
-    else if (jsoneq(c, &t[i], "fixed_worker_name") == 0) {
-      conf.fixedWorkerName_ = getJsonStr(c, &t[i+1]);
-      i++;
-    }
-    else if (jsoneq(c, &t[i], "pool_use_tls") == 0) {
-      string opt = getJsonStr(c, &t[i + 1]);
-      std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
-      conf.poolUseTls_ = (opt == "true");
-      i++;
-    }
+            for (int j = 0; j < poolCount; j++) {
+                // we expect pools to be an array: 3 elements
+				int idx = i + 1 + j * 5;
+				if (t[idx].type != JSMN_OBJECT) {
+					return false;
+				}
+
+				idx++;
+                PoolConf pool;
+
+				if (jsoneq(c, &t[idx], "duration") == 0) {
+					idx++;
+                    pool.duration_ = (uint16_t)strtoul(getJsonStr(c, &t[idx]).c_str(), NULL, 10);
+				}
+				idx++;
+                
+				if (jsoneq(c, &t[idx], "pool") == 0) {
+                    idx++;
+
+					const int btcPoolCount = t[idx].size;
+                    for (int k = 0; k < btcPoolCount; k++) {
+                        // we expect pools to be an array: 3 elements
+						int _idx = idx + 1 + k * 4;
+
+						if (t[_idx].type != JSMN_ARRAY || t[_idx].size != 3) {
+							return false;
+						}
+
+                        SinglePoolConf single;
+
+                        single.host_ = getJsonStr(c, &t[_idx + 1]);
+                        single.port_ = (uint16_t)strtoul(getJsonStr(c, &t[_idx + 2]).c_str(), NULL, 10);
+                        single.upPoolUserName_ = getJsonStr(c, &t[_idx + 3]);
+                        pool.confs_.push_back(single);
+					}
+                    i += btcPoolCount * 4;
+				}
+				conf.pools_.push_back(pool);
+			}
+        }
+        else if (jsoneq(c, &t[i], "always_keep_downconn") == 0) {
+            string opt = getJsonStr(c, &t[i + 1]);
+            std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+            conf.alwaysKeepDownconn_ = (opt == "true");
+            i++;
+        }
+        else if (jsoneq(c, &t[i], "disconnect_when_lost_asicboost") == 0) {
+            string opt = getJsonStr(c, &t[i + 1]);
+            std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+            conf.disconnectWhenLostAsicBoost_ = (opt == "true");
+            i++;
+        }
+        else if (jsoneq(c, &t[i], "use_ip_as_worker_name") == 0) {
+            string opt = getJsonStr(c, &t[i + 1]);
+            std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+            conf.useIpAsWorkerName_ = (opt == "true");
+            i++;
+        }
+        else if (jsoneq(c, &t[i], "ip_worker_name_format") == 0) {
+            conf.ipWorkerNameFormat_ = getJsonStr(c, &t[i + 1]);
+            i++;
+        }
+        else if (jsoneq(c, &t[i], "submit_response_from_server") == 0) {
+            string opt = getJsonStr(c, &t[i + 1]);
+            std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+            conf.submitResponseFromServer_ = (opt == "true");
+            i++;
+        }
+        else if (jsoneq(c, &t[i], "fixed_worker_name") == 0) {
+            conf.fixedWorkerName_ = getJsonStr(c, &t[i + 1]);
+            i++;
+        }
+        else if (jsoneq(c, &t[i], "pool_use_tls") == 0) {
+            string opt = getJsonStr(c, &t[i + 1]);
+            std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+            conf.poolUseTls_ = (opt == "true");
+            i++;
+        }
 #ifdef _WIN32
-    else if (jsoneq(c, &t[i], "use_iocp") == 0) {
-      string opt = getJsonStr(c, &t[i + 1]);
-      std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
-      conf.useIocp_ = (opt == "true");
-      i++;
-    }
+        else if (jsoneq(c, &t[i], "use_iocp") == 0) {
+            string opt = getJsonStr(c, &t[i + 1]);
+            std::transform(opt.begin(), opt.end(), opt.begin(), ::tolower);
+            conf.useIocp_ = (opt == "true");
+            i++;
+        }
 #endif
-  }
-
-  // check parametes
-  if (conf.listenIP_.empty()) {
-    LOG(ERROR) << "[conf] agent_listen_ip cannot be empty.";
-    return false;
-  }
-
-  if (conf.listenPort_ == 0) {
-    LOG(ERROR) << "[conf] agent_listen_port must be between 1 and 65535.";
-    return false;
-  }
-
-  if (conf.pools_.empty()) {
-    LOG(ERROR) << "[conf] pools cannot be empty.";
-    return false;
-  }
-
-  for (size_t i=0; i<conf.pools_.size(); i++) {
-    const auto &pool = conf.pools_[i];
-    if (pool.host_.empty()) {
-      LOG(ERROR) << "[conf] the host of pool " << i << " cannot be empty.";
-      return false;
     }
-    if (pool.port_ == 0) {
-      LOG(ERROR) << "[conf] the port of pool " << i << " (" << pool.host_
-                 << ") must be between 1 and 65535.";
-      return false;
-    }
-  }
 
-  return true;
+    // check parametes
+    if (conf.listenIP_.empty()) {
+        LOG(ERROR) << "[conf] agent_listen_ip cannot be empty.";
+        return false;
+    }
+
+    if (conf.listenPort_ == 0) {
+        LOG(ERROR) << "[conf] agent_listen_port must be between 1 and 65535.";
+        return false;
+    }
+
+    if (conf.pools_.empty()) {
+        LOG(ERROR) << "[conf] pools cannot be empty.";
+        return false;
+    }
+
+    for (size_t i = 0; i < conf.pools_.size(); i++) {
+		const auto& pools = conf.pools_[i];
+        for (size_t i = 0; i < pools.confs_.size(); i++) {
+            const auto& pool = pools.confs_[i];
+            if (pool.host_.empty()) {
+                LOG(ERROR) << "[conf] the host of pool " << i << " cannot be empty.";
+                return false;
+            }
+            if (pool.port_ == 0) {
+                LOG(ERROR) << "[conf] the port of pool " << i << " (" << pool.host_
+                    << ") must be between 1 and 65535.";
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
-const char *splitNotify(const string &line, int number) {
-  const char *pch = strchr(line.c_str(), '"');
-  int i = 1;
-  while (pch != NULL) {
-    pch = strchr(pch + 1, '"');
-    i++;
-    if (pch != NULL && i == number) {
-      break;
+const char* splitNotify(const string& line, int number) {
+    const char* pch = strchr(line.c_str(), '"');
+    int i = 1;
+    while (pch != NULL) {
+        pch = strchr(pch + 1, '"');
+        i++;
+        if (pch != NULL && i == number) {
+            break;
+        }
     }
-  }
-  if (pch == NULL) {
-    LOG(ERROR) << "invalid mining.notify: " << line << std::endl;
-    return NULL;
-  }
-  return pch;
+    if (pch == NULL) {
+        LOG(ERROR) << "invalid mining.notify: " << line << std::endl;
+        return NULL;
+    }
+    return pch;
 }
 
-string str2lower(const string &str) {
-  string data = str;
-  std::transform(data.begin(), data.end(), data.begin(), ::tolower);
-  return data;
+string str2lower(const string& str) {
+    string data = str;
+    std::transform(data.begin(), data.end(), data.begin(), ::tolower);
+    return data;
 }
 
-bool strEmpty(const string &str) {
-  return str.find_last_not_of(" \t\f\v\n\r") == str.npos;
+bool strEmpty(const string& str) {
+    return str.find_last_not_of(" \t\f\v\n\r") == str.npos;
 }

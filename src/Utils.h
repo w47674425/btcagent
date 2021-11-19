@@ -32,7 +32,7 @@
 
 
 #ifndef _WIN32
-  #include <unistd.h>
+#include <unistd.h>
 #endif
 
 #include <errno.h>
@@ -46,18 +46,18 @@
 #include "jsmn.h"
 
 #if defined(SUPPORT_GLOG)
-  #include <glog/logging.h>
+#include <glog/logging.h>
 #else
-  #define LOG(x) std::cout
+#define LOG(x) std::cout
 
-  #ifdef NDEBUG
-    // Disable debug output with Release build.
-    // It's safe because compiler will ignore whole the
-    // output streaming expression no matter a line break.
-    #define DLOG(x) if(0)std::cout
-  #else
-    #define DLOG(x) std::cout
-  #endif
+#ifdef NDEBUG
+ // Disable debug output with Release build.
+ // It's safe because compiler will ignore whole the
+ // output streaming expression no matter a line break.
+#define DLOG(x) if(0)std::cout
+#else
+#define DLOG(x) std::cout
+#endif
 #endif
 
 using  std::string;
@@ -67,12 +67,12 @@ using  std::vector;
 
 namespace std {
 
-// note: this implementation does not disable this overload for array types
-template<typename T, typename... Args>
-unique_ptr<T> make_unique(Args&&... args)
-{
-    return unique_ptr<T>(new T(forward<Args>(args)...));
-}
+    // note: this implementation does not disable this overload for array types
+    template<typename T, typename... Args>
+    unique_ptr<T> make_unique(Args&&... args)
+    {
+        return unique_ptr<T>(new T(forward<Args>(args)...));
+    }
 
 }
 
@@ -101,43 +101,48 @@ public:
 
 class Strings {
 public:
-  static string Format(const char * fmt, ...);
-  static void Append(string & dest, const char * fmt, ...);
-  static string ReplaceAll(std::string str, const std::string& from, const std::string& to);
-  static string FormatIP(uint32_t ipv4Int, string format);
+    static string Format(const char* fmt, ...);
+    static void Append(string& dest, const char* fmt, ...);
+    static string ReplaceAll(std::string str, const std::string& from, const std::string& to);
+    static string FormatIP(uint32_t ipv4Int, string format);
+};
+
+struct SinglePoolConf {
+	string host_;
+	uint16_t port_ = 0;
+	string upPoolUserName_;
 };
 
 struct PoolConf {
-  string host_;
-  uint16_t port_ = 0;
-  string upPoolUserName_;
+    std::vector<SinglePoolConf> confs_;
+	uint16_t duration_ = 1000;
 };
 
 struct AgentConf {
-  string agentType_ = "btc";
-	string listenIP_ = "0.0.0.0";
-  uint16_t listenPort_ = 3333;
-  std::vector<PoolConf> pools_;
-  bool alwaysKeepDownconn_ = false;
-	bool disconnectWhenLostAsicBoost_ = true;
-  bool submitResponseFromServer_ = false;
-  bool useIpAsWorkerName_ = false;
-  bool poolUseTls_ = false;
+    string agentType_ = "btc";
+    string listenIP_ = "0.0.0.0";
+    uint16_t listenPort_ = 3333;
+    std::vector<PoolConf> pools_;
+    bool alwaysKeepDownconn_ = false;
+    bool disconnectWhenLostAsicBoost_ = true;
+    bool submitResponseFromServer_ = false;
+    bool useIpAsWorkerName_ = false;
+    bool poolUseTls_ = false;
 #ifdef _WIN32
-  bool useIocp_ = false;
+    bool useIocp_ = false;
 #endif
-  string ipWorkerNameFormat_ = "{1}x{2}x{3}x{4}";
-  string fixedWorkerName_;
+    string ipWorkerNameFormat_ = "{1}x{2}x{3}x{4}";
+    string fixedWorkerName_;
 };
 
-string getJsonStr(const char *c,const jsmntok_t *t);
-bool parseConfJson(const string &jsonStr, AgentConf &conf);
+string getJsonStr(const char* c, const jsmntok_t* t);
+bool parseConfJson(const string& jsonStr, AgentConf& conf);
 
 // slite stratum 'mining.notify'
 // 14: the end of coinbase1
-const char *splitNotify(const string &line, int number = 14);
+const char* splitNotify(const string& line, int number = 14);
 
-string str2lower(const string &str);
-bool strEmpty(const string &str);
+string str2lower(const string& str);
+bool strEmpty(const string& str);
 
 #endif

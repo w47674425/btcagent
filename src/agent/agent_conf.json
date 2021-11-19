@@ -10,8 +10,21 @@
     "pool_use_tls": false,
     "use_iocp": false,
     "pools": [
-        ["us.ss.btc.com", 1800, "YourSubAccountName"],
-        ["us.ss.btc.com", 443, "YourSubAccountName"],
-        ["us.ss.btc.com", 3333, "YourSubAccountName"]
+      {
+        "duration": 2000,
+        "pool": [
+          [ "us.ss.btc.com", 1800, "YourSubAccountName" ],
+          [ "us.ss.btc.com", 443, "YourSubAccountName" ],
+          [ "us.ss.btc.com", 3333, "YourSubAccountName" ]
+        ]
+      },
+      {
+        "duration": 3000,
+        "pool": [
+          [ "us.ss.btc.com", 1801, "YourSubAccountName" ],
+          [ "us.ss.btc.com", 444, "YourSubAccountName" ],
+          [ "us.ss.btc.com", 3334, "YourSubAccountName" ]
+        ]
+      }
     ]
 }
