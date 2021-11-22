@@ -363,6 +363,7 @@ bool UpStratumClient::reconnect() {
 }
 
 bool UpStratumClient::forceReconnect() {
+  reconnectCount_ = 0;
   disconnect();
   initConnection();
   return connect();
@@ -659,7 +660,8 @@ void StratumServer::getNextPoolConfig()
       }
     }
   }
-    LOG(INFO) << "connection config changed, servers: " << aliveUpSessions<< std::endl;
+    LOG(INFO) << "connection config changed, servers: " << aliveUpSessions 
+      " current duration " << getUpPoolDuration() << std::endl;
 }
 
 bool StratumServer::run() {
@@ -672,7 +674,7 @@ bool StratumServer::run() {
   }
   running_ = true;
 
-  if (conf_.pools_.size() == 0) {
+  if (getUpPools().size() == 0) {
     return false;
   }
 
@@ -847,7 +849,7 @@ void StratumServer::checkUpSessions() {
         continue;
       }
 
-      if (conf_.alwaysKeepDownconn_ || upSessions_[i]->reconnectCount_ < conf_.pools_.size()) {
+      if (conf_.alwaysKeepDownconn_ || upSessions_[i]->reconnectCount_ < getUpPools().size()) {
         upSessions_[i]->reconnect();
         continue;
       }
@@ -1079,7 +1081,7 @@ void StratumServer::upEventCallback(struct bufferevent *bev,
     LOG(ERROR) << "unhandled events from pool server: " << events << std::endl;
   }
 
-  if (server->conf_.alwaysKeepDownconn_ || up->reconnectCount_ < server->conf_.pools_.size()) {
+  if (server->conf_.alwaysKeepDownconn_ || up->reconnectCount_ < server->getUpPools().size()) {
     up->reconnect();
     return;
   }
