@@ -72,7 +72,14 @@ TEST(Utils, Strings_parseConfJson) {
       "agent_listen_ip": "0.0.0.0",
       "agent_listen_port": 3333,
       "pools": [
-        ["cn.ss.btc.com", 1800, "kevin"]
+              {
+          "duration": 20,
+          "pool": [
+            [ "us.ss.btc.com", 1801, "YourSubAccountName" ],
+            [ "us.ss.btc.com", 444, "YourSubAccountName" ],
+            [ "us.ss.btc.com", 3334, "YourSubAccountName" ]
+          ]
+        }
       ]
     })EOF";
 
@@ -90,9 +97,10 @@ TEST(Utils, Strings_parseConfJson) {
     ASSERT_EQ(conf.fixedWorkerName_, "");
     
     ASSERT_EQ(conf.pools_.size(), 1u);
-    ASSERT_EQ(conf.pools_[0].host_, "cn.ss.btc.com");
-    ASSERT_EQ(conf.pools_[0].port_, 1800);
-    ASSERT_EQ(conf.pools_[0].upPoolUserName_, "kevin");
+    ASSERT_EQ(conf.pools_.duration_, 20u);
+    ASSERT_EQ(conf.pools_[0].confs_.host_, "cn.ss.btc.com");
+    ASSERT_EQ(conf.pools_[0].confs_.port_, 1800);
+    ASSERT_EQ(conf.pools_[0].confs_.upPoolUserName_, "kevin");
   }
 
   {
@@ -109,8 +117,22 @@ TEST(Utils, Strings_parseConfJson) {
       "agent_listen_port": 1800,
       "fixed_worker_name": "myworker",
       "pools": [
-        ["cn.ss.btc.com", 1800, "kevin"],
-        ["us.ss.btc.com", 3333, "kevinus"]
+        {
+          "duration": 10,
+          "pool": [
+            [ "us.ss.btc.com", 1800, "kevin" ],
+            [ "us.ss.btc.com", 443, "YourSubAccountName" ],
+            [ "us.ss.btc.com", 3333, "YourSubAccountName" ]
+          ]
+        },
+        {
+          "duration": 20,
+          "pool": [
+            [ "us.ss.btc.com", 1801, "kevinus" ],
+            [ "us.ss.btc.com", 444, "YourSubAccountName" ],
+            [ "us.ss.btc.com", 3334, "YourSubAccountName" ]
+          ]
+        }
       ]
     })EOF";
     ASSERT_EQ(parseConfJson(line, conf), true);
@@ -127,12 +149,14 @@ TEST(Utils, Strings_parseConfJson) {
 
     ASSERT_EQ(conf.pools_.size(), 2u);
 
-    ASSERT_EQ(conf.pools_[0].host_, "cn.ss.btc.com");
-    ASSERT_EQ(conf.pools_[0].port_, 1800u);
-    ASSERT_EQ(conf.pools_[0].upPoolUserName_, "kevin");
+    ASSERT_EQ(conf.pools_[0].duration_, 20u)
+    ASSERT_EQ(conf.pools_[0].confs_[0].host_, "cn.ss.btc.com");
+    ASSERT_EQ(conf.pools_[0].confs_[0].port_, 1800u);
+    ASSERT_EQ(conf.pools_[0].confs_[0].upPoolUserName_, "kevin");
 
-    ASSERT_EQ(conf.pools_[1].host_, "us.ss.btc.com");
-    ASSERT_EQ(conf.pools_[1].port_, 3333u);
-    ASSERT_EQ(conf.pools_[1].upPoolUserName_, "kevinus");
+    ASSERT_EQ(conf.pools_[1].duration_, 30u)
+    ASSERT_EQ(conf.pools_[1].confs_[0].host_, "cn.ss.btc.com");
+    ASSERT_EQ(conf.pools_[1].confs_[0].port_, 1800u);
+    ASSERT_EQ(conf.pools_[1].confs_[0].upPoolUserName_, "kevin");
   }
 }
