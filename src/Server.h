@@ -243,7 +243,9 @@ protected:
 
   int32_t upCurrentPoolIndex_;
   int32_t upCurrentPoolDuration_;
-  int32_t upPoolCount_;
+  int32_t upPoolCount_;  
+  
+  uint32_t lastConfChangeTime_ = 0;
 
 public:
   SessionIDManager sessionIDManager_;
@@ -285,10 +287,6 @@ public:
   
   static void upWatcherCallback(evutil_socket_t fd, short events, void *ptr);
   static void upSesssionCheckCallback(evutil_socket_t fd, short events, void *ptr);
-
-  void resetUpPoolConfig();
-
-  static void upResetWatcherCallback(evutil_socket_t fd, short events, void *ptr);
 
   void sendMiningNotifyToAll(const UpStratumClient *conn);
   void sendFakeMiningNotifyToAll(const UpStratumClient *conn);
