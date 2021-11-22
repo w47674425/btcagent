@@ -11,7 +11,7 @@
     "use_iocp": false,
     "pools": [
       {
-        "duration": 2000,
+        "duration": 10,
         "pool": [
           [ "us.ss.btc.com", 1800, "YourSubAccountName" ],
           [ "us.ss.btc.com", 443, "YourSubAccountName" ],
@@ -19,7 +19,7 @@
         ]
       },
       {
-        "duration": 3000,
+        "duration": 20,
         "pool": [
           [ "us.ss.btc.com", 1801, "YourSubAccountName" ],
           [ "us.ss.btc.com", 444, "YourSubAccountName" ],

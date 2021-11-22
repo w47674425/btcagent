@@ -107,32 +107,34 @@ public:
     static string FormatIP(uint32_t ipv4Int, string format);
 };
 
-struct SinglePoolConf {
+struct PoolConf {
 	string host_;
 	uint16_t port_ = 0;
 	string upPoolUserName_;
 };
 
-struct PoolConf {
-    std::vector<SinglePoolConf> confs_;
+struct PoolEmbedConf {
+	std::vector<PoolConf> confs_;
 	uint16_t duration_ = 1000;
+
+	inline const std::vector<PoolConf>& GetUpPools() { return confs_; }
 };
 
 struct AgentConf {
-    string agentType_ = "btc";
-    string listenIP_ = "0.0.0.0";
-    uint16_t listenPort_ = 3333;
-    std::vector<PoolConf> pools_;
-    bool alwaysKeepDownconn_ = false;
-    bool disconnectWhenLostAsicBoost_ = true;
-    bool submitResponseFromServer_ = false;
-    bool useIpAsWorkerName_ = false;
-    bool poolUseTls_ = false;
+	string agentType_ = "btc";
+	string listenIP_ = "0.0.0.0";
+	uint16_t listenPort_ = 3333;
+	std::vector<PoolEmbedConf> pools_;
+	bool alwaysKeepDownconn_ = false;
+	bool disconnectWhenLostAsicBoost_ = true;
+	bool submitResponseFromServer_ = false;
+	bool useIpAsWorkerName_ = false;
+	bool poolUseTls_ = false;
 #ifdef _WIN32
-    bool useIocp_ = false;
+	bool useIocp_ = false;
 #endif
-    string ipWorkerNameFormat_ = "{1}x{2}x{3}x{4}";
-    string fixedWorkerName_;
+	string ipWorkerNameFormat_ = "{1}x{2}x{3}x{4}";
+	string fixedWorkerName_;
 };
 
 string getJsonStr(const char* c, const jsmntok_t* t);

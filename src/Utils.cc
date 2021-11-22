@@ -203,11 +203,11 @@ bool parseConfJson(const string& jsonStr, AgentConf& conf) {
 				}
 
 				idx++;
-                PoolConf pool;
+                PoolEmbedConf poolEmbed;
 
 				if (jsoneq(c, &t[idx], "duration") == 0) {
 					idx++;
-                    pool.duration_ = (uint16_t)strtoul(getJsonStr(c, &t[idx]).c_str(), NULL, 10);
+                    poolEmbed.duration_ = (uint16_t)strtoul(getJsonStr(c, &t[idx]).c_str(), NULL, 10);
 				}
 				idx++;
                 
@@ -223,16 +223,16 @@ bool parseConfJson(const string& jsonStr, AgentConf& conf) {
 							return false;
 						}
 
-                        SinglePoolConf single;
+                        PoolConf pool;
 
-                        single.host_ = getJsonStr(c, &t[_idx + 1]);
-                        single.port_ = (uint16_t)strtoul(getJsonStr(c, &t[_idx + 2]).c_str(), NULL, 10);
-                        single.upPoolUserName_ = getJsonStr(c, &t[_idx + 3]);
-                        pool.confs_.push_back(single);
+                        pool.host_ = getJsonStr(c, &t[_idx + 1]);
+                        pool.port_ = (uint16_t)strtoul(getJsonStr(c, &t[_idx + 2]).c_str(), NULL, 10);
+                        pool.upPoolUserName_ = getJsonStr(c, &t[_idx + 3]);
+                        poolEmbed.confs_.push_back(pool);
 					}
                     i += btcPoolCount * 4;
 				}
-				conf.pools_.push_back(pool);
+				conf.pools_.push_back(poolEmbed);
 			}
         }
         else if (jsoneq(c, &t[i], "always_keep_downconn") == 0) {

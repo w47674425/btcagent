@@ -213,6 +213,8 @@ private:
 
   struct event *upEvTimer_ = nullptr;
 
+  struct event *upResetEvTimer_ = nullptr;
+
   // libevent2
   struct event_base *base_ = nullptr;
   struct event *signal_event_ = nullptr;
@@ -237,6 +239,10 @@ protected:
   // down stream connections
   vector<StratumSession *> downSessions_;
 
+  int32_t upCurrentPoolIndex_;
+  int32_t upCurrentPoolDuration_;
+  int32_t upPoolCount_;
+
   AgentConf conf_;
 
 public:
@@ -248,7 +254,9 @@ public:
 
   UpStratumClient *createUpSession(const int8_t idx);
 
-  inline const vector<PoolConf>& getUpPools() { return conf_.pools_; }
+  void getNextPoolConfig();
+  const vector<PoolConf>& getUpPools();
+  const int32_t getUpPoolDuration();
   inline struct event_base* getEventBase() { return base_; }
   inline bool disconnectWhenLostAsicBoost() { return conf_.disconnectWhenLostAsicBoost_; }
   inline bool useIpAsWorkerName() { return conf_.useIpAsWorkerName_; }
@@ -277,6 +285,10 @@ public:
   
   static void upWatcherCallback(evutil_socket_t fd, short events, void *ptr);
   static void upSesssionCheckCallback(evutil_socket_t fd, short events, void *ptr);
+
+  void resetUpPoolConfig(time_t seconds);
+
+  static void upResetWatcherCallback(evutil_socket_t fd, short events, void *ptr);
 
   void sendMiningNotifyToAll(const UpStratumClient *conn);
   void sendFakeMiningNotifyToAll(const UpStratumClient *conn);
@@ -348,6 +360,8 @@ public:
 
   bool connect();
   bool reconnect();
+
+  bool forceReconnect();
 
   void recvData(struct evbuffer *buf);
   void sendData(const char *data, size_t len);

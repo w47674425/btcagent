@@ -357,6 +357,12 @@ bool UpStratumClient::reconnect() {
   return connect();
 }
 
+bool UpStratumClient::forceReconnect() {
+  disconnect();
+  initConnection();
+  return connect();
+}
+
 void UpStratumClient::recvData(struct evbuffer *buf) {
   // moves all data from src to the end of dst
   evbuffer_add_buffer(inBuf_, buf);
@@ -558,10 +564,13 @@ void StratumSession::recvData(struct evbuffer *buf) {
 /////////////////////////////////// StratumServer //////////////////////////////
 StratumServer::StratumServer(const AgentConf &conf)
 : conf_(conf)
+, upCurrentPoolIndex_(0)
+, upCurrentPoolDuration_(1000)
 {
   upSessions_    .resize(kUpSessionCount_, NULL);
   upSessionCount_.resize(kUpSessionCount_, 0);
   downSessions_.resize(AGENT_MAX_SESSION_ID + 1, NULL);
+  upPoolCount_ = conf.size();
 }
 
 StratumServer::~StratumServer() {
@@ -582,6 +591,9 @@ StratumServer::~StratumServer() {
 
   if (upEvTimer_)
     event_del(upEvTimer_);
+
+  if (upResetEvTimer_)
+    event_del(upResetEvTimer_);
 
   if (listener_)
     evconnlistener_free(listener_);
@@ -606,6 +618,43 @@ UpStratumClient * StratumServer::createUpSession(int8_t idx) {
     return nullptr;
   }
   return up;
+}
+
+const PoolConf& StratumServer::getUpPools()
+{
+    return conf_.pools_[upCurrentPoolIndex_].GetUpPools();
+}
+
+const const int32_t StratumServer::getUpPoolDuration()
+{
+    return conf_.pools_[upCurrentPoolIndex_].duration_;
+}
+
+void StratumServer::getNextPoolConfig()
+{
+    if (upCurrentPoolIndex_ == upPoolCount_)
+    {
+        upCurrentPoolIndex_ = 0;
+    }
+    else
+    {
+        upCurrentPoolIndex_++;
+    }
+    
+  size_t aliveUpSessions = 0;
+
+  // check up sessions
+  for (int8_t i = 0; i < kUpSessionCount_; i++)
+  {
+    // if upsession's socket error, it'll be removed and set to NULL
+    if (upSessions_[i] != nullptr) {
+      if (upSessions_[i]->forceReconnect() == true) {
+        aliveUpSessions++;
+        continue;
+      }
+    }
+  }
+    LOG(INFO) << "connection config changed, servers: " << aliveUpSessions<< std::endl;
 }
 
 bool StratumServer::run() {
@@ -688,6 +737,8 @@ bool StratumServer::run() {
 
   // every 15 seconds to check if up session's available
   resetUpWatcherTime(15);
+  // change target pool by config duration
+  resetUpPoolConfig();
 
   // set up ev listener
   struct sockaddr_in sin;
@@ -760,6 +811,26 @@ void StratumServer::upWatcherCallback(evutil_socket_t fd,
                                       short events, void *ptr) {
   StratumServer *server = static_cast<StratumServer *>(ptr);
   server->checkUpSessions();
+}
+
+void StratumServer::resetUpPoolConfig() {
+  if (upResetEvTimer_ == nullptr) {
+    // setup up sessions watcher
+    upResetEvTimer_ = event_new(base_, -1, EV_PERSIST,
+      StratumServer::upResetWatcherCallback, this);
+  } else {
+    event_del(upResetEvTimer_);
+  }
+  time_t seconds = getUpPoolDuration();
+  struct timeval tenSec = {seconds, 0};
+  event_add(upResetEvTimer_, &tenSec);
+}
+
+void StratumServer::upResetWatcherCallback(evutil_socket_t fd,
+                                      short events, void *ptr) {
+  StratumServer *server = static_cast<StratumServer *>(ptr);
+  server->getNextPoolConfig();
+  server->resetUpPoolConfig();
 }
 
 void StratumServer::checkUpSessions() {
