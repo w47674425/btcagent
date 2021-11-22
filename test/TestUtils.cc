@@ -147,12 +147,12 @@ TEST(Utils, Strings_parseConfJson) {
 
     ASSERT_EQ(conf.pools_.size(), 2u);
 
-    ASSERT_EQ(conf.pools_[0].duration_, 20u)
+    ASSERT_EQ(conf.pools_[0].duration_, 20u);
     ASSERT_EQ(conf.pools_[0].confs_[0].host_, "cn.ss.btc.com");
     ASSERT_EQ(conf.pools_[0].confs_[0].port_, 1800u);
     ASSERT_EQ(conf.pools_[0].confs_[0].upPoolUserName_, "kevin");
 
-    ASSERT_EQ(conf.pools_[1].duration_, 30u)
+    ASSERT_EQ(conf.pools_[1].duration_, 30u);
     ASSERT_EQ(conf.pools_[1].confs_[0].host_, "cn.ss.btc.com");
     ASSERT_EQ(conf.pools_[1].confs_[0].port_, 1800u);
     ASSERT_EQ(conf.pools_[1].confs_[0].upPoolUserName_, "kevin");
