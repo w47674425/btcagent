@@ -638,7 +638,7 @@ void StratumServer::getNextPoolConfig()
         upCurrentPoolIndex_++;
     }
     
-  auto &pools = server_->getUpPools();
+  auto &pools = getUpPools();
   for (const auto &pool : pools) {
     LOG(INFO) << "change pool: " << pool.host_ << ":" << pool.port_ << ", subaccount name: " << pool.upPoolUserName_ << std::endl;
   }
