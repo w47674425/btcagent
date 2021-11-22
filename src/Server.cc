@@ -362,11 +362,9 @@ bool UpStratumClient::reconnect() {
   return connect();
 }
 
-bool UpStratumClient::forceReconnect() {
+void UpStratumClient::forceReconnect() {
+  state_ = UP_INIT;
   reconnectCount_ = 0;
-  disconnect();
-  initConnection();
-  return connect();
 }
 
 void UpStratumClient::recvData(struct evbuffer *buf) {
@@ -654,14 +652,10 @@ void StratumServer::getNextPoolConfig()
   {
     // if upsession's socket error, it'll be removed and set to NULL
     if (upSessions_[i] != nullptr) {
-      if (upSessions_[i]->forceReconnect() == true) {
-        aliveUpSessions++;
-        continue;
-      }
+      upSessions_[i]->forceReconnect();
     }
   }
-    LOG(INFO) << "connection config changed, servers: " << aliveUpSessions <<
-      " current duration " << getUpPoolDuration() << std::endl;
+    LOG(INFO) << "connection config changed, wait next reconnect" << std::endl;
 }
 
 bool StratumServer::run() {

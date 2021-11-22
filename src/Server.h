@@ -361,7 +361,7 @@ public:
   bool connect();
   bool reconnect();
 
-  bool forceReconnect();
+  void forceReconnect();
 
   void recvData(struct evbuffer *buf);
   void sendData(const char *data, size_t len);
