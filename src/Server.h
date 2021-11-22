@@ -239,11 +239,11 @@ protected:
   // down stream connections
   vector<StratumSession *> downSessions_;
 
+  AgentConf conf_;
+
   int32_t upCurrentPoolIndex_;
   int32_t upCurrentPoolDuration_;
   int32_t upPoolCount_;
-
-  AgentConf conf_;
 
 public:
   SessionIDManager sessionIDManager_;
@@ -286,7 +286,7 @@ public:
   static void upWatcherCallback(evutil_socket_t fd, short events, void *ptr);
   static void upSesssionCheckCallback(evutil_socket_t fd, short events, void *ptr);
 
-  void resetUpPoolConfig(time_t seconds);
+  void resetUpPoolConfig();
 
   static void upResetWatcherCallback(evutil_socket_t fd, short events, void *ptr);
 

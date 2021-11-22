@@ -311,6 +311,11 @@ void UpStratumClient::disconnect() {
 
 bool UpStratumClient::connect() {
   auto &pools = server_->getUpPools();
+
+  for (const auto &pool : pools) {
+    LOG(INFO) << "connect pool: " << pool.host_ << ":" << pool.port_ << ", subaccount name: " << pool.upPoolUserName_ << std::endl;
+  }
+
   for (size_t s=0; s < pools.size(); s++) {
     if (poolIndex_ >= pools.size()) {
       poolIndex_ = 0;
@@ -570,7 +575,7 @@ StratumServer::StratumServer(const AgentConf &conf)
   upSessions_    .resize(kUpSessionCount_, NULL);
   upSessionCount_.resize(kUpSessionCount_, 0);
   downSessions_.resize(AGENT_MAX_SESSION_ID + 1, NULL);
-  upPoolCount_ = conf.size();
+  upPoolCount_ = conf.pools_.size();
 }
 
 StratumServer::~StratumServer() {
@@ -620,12 +625,12 @@ UpStratumClient * StratumServer::createUpSession(int8_t idx) {
   return up;
 }
 
-const PoolConf& StratumServer::getUpPools()
+const vector<PoolConf>& StratumServer::getUpPools()
 {
     return conf_.pools_[upCurrentPoolIndex_].GetUpPools();
 }
 
-const const int32_t StratumServer::getUpPoolDuration()
+const int32_t StratumServer::getUpPoolDuration()
 {
     return conf_.pools_[upCurrentPoolIndex_].duration_;
 }
@@ -658,10 +663,6 @@ void StratumServer::getNextPoolConfig()
 }
 
 bool StratumServer::run() {
-  for (const auto &pool : conf_.pools_) {
-    LOG(INFO) << "add pool: " << pool.host_ << ":" << pool.port_ << ", subaccount name: " << pool.upPoolUserName_ << std::endl;
-  }
-
   if (!conf_.fixedWorkerName_.empty()) {
     LOG(INFO) << "[OPTION] Fixed worker name enabled, all worker name will be replaced to " << conf_.fixedWorkerName_ << " on the server.";
   }
