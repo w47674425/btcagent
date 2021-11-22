@@ -75,9 +75,7 @@ TEST(Utils, Strings_parseConfJson) {
           {
             "duration": 20,
             "pool": [
-              [ "us.ss.btc.com", 1801, "YourSubAccountName" ],
-              [ "us.ss.btc.com", 444, "YourSubAccountName" ],
-              [ "us.ss.btc.com", 3334, "YourSubAccountName" ]
+              [ "us.ss.btc.com", 1800, "kevin" ]
             ]
           }
       ]
