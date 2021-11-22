@@ -312,10 +312,6 @@ void UpStratumClient::disconnect() {
 bool UpStratumClient::connect() {
   auto &pools = server_->getUpPools();
 
-  for (const auto &pool : pools) {
-    LOG(INFO) << "connect pool: " << pool.host_ << ":" << pool.port_ << ", subaccount name: " << pool.upPoolUserName_ << std::endl;
-  }
-
   for (size_t s=0; s < pools.size(); s++) {
     if (poolIndex_ >= pools.size()) {
       poolIndex_ = 0;
@@ -642,6 +638,11 @@ void StratumServer::getNextPoolConfig()
         upCurrentPoolIndex_++;
     }
     
+  auto &pools = server_->getUpPools();
+  for (const auto &pool : pools) {
+    LOG(INFO) << "change pool: " << pool.host_ << ":" << pool.port_ << ", subaccount name: " << pool.upPoolUserName_ << std::endl;
+  }
+    
   size_t aliveUpSessions = 0;
 
   // check up sessions
@@ -656,6 +657,10 @@ void StratumServer::getNextPoolConfig()
 }
 
 bool StratumServer::run() {
+  for (const auto &pool : getUpPools()) {
+    LOG(INFO) << "change pool: " << pool.host_ << ":" << pool.port_ << ", subaccount name: " << pool.upPoolUserName_ << std::endl;
+  }
+
   if (!conf_.fixedWorkerName_.empty()) {
     LOG(INFO) << "[OPTION] Fixed worker name enabled, all worker name will be replaced to " << conf_.fixedWorkerName_ << " on the server.";
   }
@@ -730,7 +735,8 @@ bool StratumServer::run() {
   }
 
   // every 15 seconds to check if up session's available
-  resetUpWatcherTime(15);
+  resetUpWatcherTime(15);  
+  lastConfChangeTime_ = time(nullptr);
 
   // set up ev listener
   struct sockaddr_in sin;
@@ -791,11 +797,8 @@ void StratumServer::resetUpWatcherTime(time_t seconds) {
     // setup up sessions watcher
     upEvTimer_ = event_new(base_, -1, EV_PERSIST,
       StratumServer::upWatcherCallback, this);
-      
-    LOG(ERROR) << "setup up sessions watcher "  << std::endl;
   } else {
     event_del(upEvTimer_);
-    LOG(ERROR) << "event del sessions watcher "  << std::endl;
   }
 
   struct timeval tenSec = {seconds, 0};
@@ -861,8 +864,6 @@ void StratumServer::checkUpConfigExpire() {
     LOG(INFO) << "checkUpConfigExpire, duration: " << duration
               << ", time elapse: " << now - lastConfChangeTime_ << std::endl;
     if (now - lastConfChangeTime_ < duration) {
-      // Too fast changeConfig.
-      // StratumServer::checkUpSessions() will do the reconnect after 5 seconds.
       return;
     }
     lastConfChangeTime_ = now;
