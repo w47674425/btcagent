@@ -864,7 +864,7 @@ void StratumServer::checkUpConfigExpire() {
     if (now - lastConfChangeTime_ < duration) {
       // Too fast changeConfig.
       // StratumServer::checkUpSessions() will do the reconnect after 5 seconds.
-      return false;
+      return;
     }
     lastConfChangeTime_ = now;
     getNextPoolConfig();
