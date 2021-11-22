@@ -312,6 +312,10 @@ void UpStratumClient::disconnect() {
 bool UpStratumClient::connect() {
   auto &pools = server_->getUpPools();
 
+  for (const auto &pool : pools) {
+    LOG(INFO) << "connect pool: " << pool.host_ << ":" << pool.port_ << ", subaccount name: " << pool.upPoolUserName_ << std::endl;
+  }
+
   for (size_t s=0; s < pools.size(); s++) {
     if (poolIndex_ >= pools.size()) {
       poolIndex_ = 0;
@@ -592,6 +596,9 @@ StratumServer::~StratumServer() {
   if (upEvTimer_)
     event_del(upEvTimer_);
 
+  if (upResetEvTimer_)
+    event_del(upResetEvTimer_);
+
   if (listener_)
     evconnlistener_free(listener_);
 
@@ -629,7 +636,7 @@ const int32_t StratumServer::getUpPoolDuration()
 
 void StratumServer::getNextPoolConfig()
 {
-    if (upCurrentPoolIndex_ == upPoolCount_)
+    if (upCurrentPoolIndex_ >= upPoolCount_)
     {
         upCurrentPoolIndex_ = 0;
     }
@@ -637,13 +644,11 @@ void StratumServer::getNextPoolConfig()
     {
         upCurrentPoolIndex_++;
     }
+    LOG(INFO) << "getNextPoolConfig: current" << upCurrentPoolIndex_ << " max:" << upPoolCount_ << std::endl;
     
-  auto &pools = getUpPools();
-  for (const auto &pool : pools) {
+  for (const auto &pool : getUpPools()) {
     LOG(INFO) << "change pool: " << pool.host_ << ":" << pool.port_ << ", subaccount name: " << pool.upPoolUserName_ << std::endl;
   }
-    
-  size_t aliveUpSessions = 0;
 
   // check up sessions
   for (int8_t i = 0; i < kUpSessionCount_; i++)
@@ -658,7 +663,7 @@ void StratumServer::getNextPoolConfig()
 
 bool StratumServer::run() {
   for (const auto &pool : getUpPools()) {
-    LOG(INFO) << "change pool: " << pool.host_ << ":" << pool.port_ << ", subaccount name: " << pool.upPoolUserName_ << std::endl;
+    LOG(INFO) << "add pool: " << pool.host_ << ":" << pool.port_ << ", subaccount name: " << pool.upPoolUserName_ << std::endl;
   }
 
   if (!conf_.fixedWorkerName_.empty()) {
@@ -735,8 +740,9 @@ bool StratumServer::run() {
   }
 
   // every 15 seconds to check if up session's available
-  resetUpWatcherTime(15);  
-  lastConfChangeTime_ = time(nullptr);
+  resetUpWatcherTime(15);
+  // change target pool by config duration
+  resetUpPoolConfig();
 
   // set up ev listener
   struct sockaddr_in sin;
@@ -809,7 +815,26 @@ void StratumServer::upWatcherCallback(evutil_socket_t fd,
                                       short events, void *ptr) {
   StratumServer *server = static_cast<StratumServer *>(ptr);
   server->checkUpSessions();
-  server->checkUpConfigExpire();
+}
+
+void StratumServer::resetUpPoolConfig() {
+  if (upResetEvTimer_ == nullptr) {
+    // setup up sessions watcher
+    upResetEvTimer_ = event_new(base_, -1, EV_PERSIST,
+      StratumServer::upResetWatcherCallback, this);
+  } else {
+    event_del(upResetEvTimer_);
+  }
+  time_t seconds = getUpPoolDuration();
+  struct timeval tenSec = {seconds, 0};
+  event_add(upResetEvTimer_, &tenSec);
+}
+
+void StratumServer::upResetWatcherCallback(evutil_socket_t fd,
+                                      short events, void *ptr) {
+  StratumServer *server = static_cast<StratumServer *>(ptr);
+  server->getNextPoolConfig();
+  server->resetUpPoolConfig();
 }
 
 void StratumServer::checkUpSessions() {
@@ -856,18 +881,6 @@ void StratumServer::checkUpSessions() {
     LOG(INFO) << "connection number changed, servers: " << aliveUpSessions
               << ", miners: " << aliveDownSessions << std::endl;
   }
-}
-
-void StratumServer::checkUpConfigExpire() {
-    time_t now = time(nullptr);
-    int32_t duration = getUpPoolDuration();
-    LOG(INFO) << "checkUpConfigExpire, duration: " << duration
-              << ", time elapse: " << now - lastConfChangeTime_ << std::endl;
-    if (now - lastConfChangeTime_ < duration) {
-      return;
-    }
-    lastConfChangeTime_ = now;
-    getNextPoolConfig();
 }
 
 void StratumServer::listenerCallback(struct evconnlistener *listener,

@@ -213,15 +213,15 @@ private:
 
   struct event *upEvTimer_ = nullptr;
 
+  struct event *upResetEvTimer_ = nullptr;
+
   // libevent2
   struct event_base *base_ = nullptr;
   struct event *signal_event_ = nullptr;
   struct evconnlistener *listener_ = nullptr;
 
-  void checkUpSessions();  
+  void checkUpSessions();
   void waitUtilAllUpSessionsAvailable();
-
-  void checkUpConfigExpire();
 
   virtual UpStratumClient *createUpClient(int8_t idx,
                                           StratumServer *server) = 0;
@@ -243,9 +243,7 @@ protected:
 
   int32_t upCurrentPoolIndex_;
   int32_t upCurrentPoolDuration_;
-  int32_t upPoolCount_;  
-  
-  uint32_t lastConfChangeTime_ = 0;
+  int32_t upPoolCount_;
 
 public:
   SessionIDManager sessionIDManager_;
@@ -287,6 +285,10 @@ public:
   
   static void upWatcherCallback(evutil_socket_t fd, short events, void *ptr);
   static void upSesssionCheckCallback(evutil_socket_t fd, short events, void *ptr);
+
+  void resetUpPoolConfig();
+
+  static void upResetWatcherCallback(evutil_socket_t fd, short events, void *ptr);
 
   void sendMiningNotifyToAll(const UpStratumClient *conn);
   void sendFakeMiningNotifyToAll(const UpStratumClient *conn);
