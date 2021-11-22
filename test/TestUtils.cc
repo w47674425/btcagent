@@ -72,14 +72,14 @@ TEST(Utils, Strings_parseConfJson) {
       "agent_listen_ip": "0.0.0.0",
       "agent_listen_port": 3333,
       "pools": [
-              {
-          "duration": 20,
-          "pool": [
-            [ "us.ss.btc.com", 1801, "YourSubAccountName" ],
-            [ "us.ss.btc.com", 444, "YourSubAccountName" ],
-            [ "us.ss.btc.com", 3334, "YourSubAccountName" ]
-          ]
-        }
+          {
+            "duration": 20,
+            "pool": [
+              [ "us.ss.btc.com", 1801, "YourSubAccountName" ],
+              [ "us.ss.btc.com", 444, "YourSubAccountName" ],
+              [ "us.ss.btc.com", 3334, "YourSubAccountName" ]
+            ]
+          }
       ]
     })EOF";
 
@@ -97,10 +97,10 @@ TEST(Utils, Strings_parseConfJson) {
     ASSERT_EQ(conf.fixedWorkerName_, "");
     
     ASSERT_EQ(conf.pools_.size(), 1u);
-    ASSERT_EQ(conf.pools_.duration_, 20u);
-    ASSERT_EQ(conf.pools_[0].confs_.host_, "cn.ss.btc.com");
-    ASSERT_EQ(conf.pools_[0].confs_.port_, 1800);
-    ASSERT_EQ(conf.pools_[0].confs_.upPoolUserName_, "kevin");
+    ASSERT_EQ(conf.pools_[0].duration_, 20u);
+    ASSERT_EQ(conf.pools_[0].confs_[0].host_, "cn.ss.btc.com");
+    ASSERT_EQ(conf.pools_[0].confs_[0].port_, 1800);
+    ASSERT_EQ(conf.pools_[0].confs_[0].upPoolUserName_, "kevin");
   }
 
   {
