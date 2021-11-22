@@ -796,8 +796,11 @@ void StratumServer::resetUpWatcherTime(time_t seconds) {
     // setup up sessions watcher
     upEvTimer_ = event_new(base_, -1, EV_PERSIST,
       StratumServer::upWatcherCallback, this);
+      
+    LOG(ERROR) << "setup up sessions watcher "  << std::endl;
   } else {
     event_del(upEvTimer_);
+    LOG(ERROR) << "event del sessions watcher "  << std::endl;
   }
 
   struct timeval tenSec = {seconds, 0};
@@ -815,8 +818,10 @@ void StratumServer::resetUpPoolConfig() {
     // setup up sessions watcher
     upResetEvTimer_ = event_new(base_, -1, EV_PERSIST,
       StratumServer::upResetWatcherCallback, this);
+    LOG(ERROR) << "setup up UpPool watcher "  << std::endl;
   } else {
     event_del(upResetEvTimer_);
+    LOG(ERROR) << "event del UpPool watcher "  << std::endl;
   }
   time_t seconds = getUpPoolDuration();
   struct timeval tenSec = {seconds, 0};
