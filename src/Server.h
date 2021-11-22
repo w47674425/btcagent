@@ -213,8 +213,6 @@ private:
 
   struct event *upEvTimer_ = nullptr;
 
-  struct event *upResetEvTimer_ = nullptr;
-
   // libevent2
   struct event_base *base_ = nullptr;
   struct event *signal_event_ = nullptr;

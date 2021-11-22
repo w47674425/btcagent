@@ -596,9 +596,6 @@ StratumServer::~StratumServer() {
   if (upEvTimer_)
     event_del(upEvTimer_);
 
-  if (upResetEvTimer_)
-    event_del(upResetEvTimer_);
-
   if (listener_)
     evconnlistener_free(listener_);
 
@@ -861,6 +858,8 @@ void StratumServer::checkUpSessions() {
 void StratumServer::checkUpConfigExpire() {
     time_t now = time(nullptr);
     int32_t duration = getUpPoolDuration();
+    LOG(INFO) << "checkUpConfigExpire, duration: " << duration
+              << ", time elapse: " << now - lastConfChangeTime_ << std::endl;
     if (now - lastConfChangeTime_ < duration) {
       // Too fast changeConfig.
       // StratumServer::checkUpSessions() will do the reconnect after 5 seconds.
