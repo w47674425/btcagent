@@ -660,7 +660,7 @@ void StratumServer::getNextPoolConfig()
       }
     }
   }
-    LOG(INFO) << "connection config changed, servers: " << aliveUpSessions 
+    LOG(INFO) << "connection config changed, servers: " << aliveUpSessions <<
       " current duration " << getUpPoolDuration() << std::endl;
 }
 
