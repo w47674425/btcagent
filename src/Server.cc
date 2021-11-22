@@ -636,14 +636,12 @@ const int32_t StratumServer::getUpPoolDuration()
 
 void StratumServer::getNextPoolConfig()
 {
+    upCurrentPoolIndex_++;
     if (upCurrentPoolIndex_ >= upPoolCount_)
     {
         upCurrentPoolIndex_ = 0;
     }
-    else
-    {
-        upCurrentPoolIndex_++;
-    }
+    
     LOG(INFO) << "getNextPoolConfig: current" << upCurrentPoolIndex_ << " max:" << upPoolCount_ << std::endl;
     
   for (const auto &pool : getUpPools()) {
