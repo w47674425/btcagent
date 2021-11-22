@@ -220,8 +220,10 @@ private:
   struct event *signal_event_ = nullptr;
   struct evconnlistener *listener_ = nullptr;
 
-  void checkUpSessions();
+  void checkUpSessions();  
   void waitUtilAllUpSessionsAvailable();
+
+  void checkUpConfigExpire();
 
   virtual UpStratumClient *createUpClient(int8_t idx,
                                           StratumServer *server) = 0;
