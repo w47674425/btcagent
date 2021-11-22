@@ -312,10 +312,6 @@ void UpStratumClient::disconnect() {
 bool UpStratumClient::connect() {
   auto &pools = server_->getUpPools();
 
-  for (const auto &pool : pools) {
-    LOG(INFO) << "connect pool: " << pool.host_ << ":" << pool.port_ << ", subaccount name: " << pool.upPoolUserName_ << std::endl;
-  }
-
   for (size_t s=0; s < pools.size(); s++) {
     if (poolIndex_ >= pools.size()) {
       poolIndex_ = 0;
@@ -364,7 +360,6 @@ bool UpStratumClient::reconnect() {
 
 void UpStratumClient::forceReconnect() {
   state_ = UP_INIT;
-  reconnectCount_ = 0;
 }
 
 void UpStratumClient::recvData(struct evbuffer *buf) {
@@ -641,7 +636,7 @@ void StratumServer::getNextPoolConfig()
     {
         upCurrentPoolIndex_ = 0;
     }
-    
+
     LOG(INFO) << "getNextPoolConfig: current" << upCurrentPoolIndex_ << " max:" << upPoolCount_ << std::endl;
     
   for (const auto &pool : getUpPools()) {
