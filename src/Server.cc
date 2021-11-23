@@ -860,7 +860,6 @@ void StratumServer::checkUpSessions() {
 
     UpStratumClient *up = createUpSession(i);
     if (up != nullptr) {
-      LOG(INFO) << "recreate session success, index is: " << i << ":"  << std::endl;
       addUpConnection(up);
     }
   }
