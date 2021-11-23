@@ -359,7 +359,13 @@ bool UpStratumClient::reconnect() {
 }
 
 void UpStratumClient::forceReconnect() {
-  state_ = UP_INIT;
+  // for (int8_t i = 0; i < kUpSessionCount_; i++)
+  // {
+  //   // if upsession's socket error, it'll be removed and set to NULL
+  //   if (upSessions_[i] != nullptr) {      
+  //       removeUpConnection(upSessions_[i]);
+  //   }
+  // }
 }
 
 void UpStratumClient::recvData(struct evbuffer *buf) {
@@ -466,7 +472,7 @@ void UpStratumClient::sendData(const char *data, size_t len) {
 
   // add data to a bufferevent’s output buffer
   bufferevent_write(bev_, data, len);
-  // DLOG(INFO) << "UpStratumClient send(" << len << "): " << data << std::endl;
+  DLOG(INFO) << "UpStratumClient send(" << len << "): " << data << std::endl;
 }
 
 bool UpStratumClient::sendRequest(const string &str) {
@@ -648,10 +654,10 @@ void StratumServer::getNextPoolConfig()
   {
     // if upsession's socket error, it'll be removed and set to NULL
     if (upSessions_[i] != nullptr) {
-      upSessions_[i]->forceReconnect();
+        removeUpConnection(upSessions_[i]);
     }
   }
-    LOG(INFO) << "connection config changed, wait next reconnect" << std::endl;
+  LOG(INFO) << "connection config changed, remove "<< removeUpConnection << " sessions, wait next reconnect" << std::endl;
 }
 
 bool StratumServer::run() {
@@ -853,6 +859,7 @@ void StratumServer::checkUpSessions() {
 
     UpStratumClient *up = createUpSession(i);
     if (up != nullptr) {
+      LOG(INFO) << "recreate session success, index is: " << i << std::endl;
       addUpConnection(up);
     }
   }
