@@ -657,7 +657,8 @@ void StratumServer::getNextPoolConfig()
         removeUpConnection(upSessions_[i]);
     }
   }
-  LOG(INFO) << "connection config changed, remove " << kUpSessionCount_ << " sessions, wait next reconnect" << std::endl;
+
+  LOG(INFO) << "connection config changed, remove all session, wait next reconnect" << std::endl;
 }
 
 bool StratumServer::run() {
@@ -859,7 +860,7 @@ void StratumServer::checkUpSessions() {
 
     UpStratumClient *up = createUpSession(i);
     if (up != nullptr) {
-      LOG(INFO) << "recreate session success, index is: " << i << std::endl;
+      LOG(INFO) << "recreate session success, index is: " << i << ":"  << std::endl;
       addUpConnection(up);
     }
   }
